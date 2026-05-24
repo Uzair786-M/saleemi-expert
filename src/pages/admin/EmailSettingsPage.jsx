@@ -811,7 +811,7 @@ export const EmailSettingsPage = () => {
               "Turn on 2-Step Verification",
               "Go to App passwords → Generate",
               "Copy the 16-character password",
-              "Paste it as EMAIL_PASS in your .env",
+              "Paste it as EMAIL_PASSWORD in your .env",
             ],
           },
           {

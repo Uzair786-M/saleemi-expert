@@ -484,7 +484,7 @@ export const ReviewsAdminPage = () => {
           }}
         >
           <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
-            No approved public reviews yet.
+            No approved public reviews yet
           </p>
         </div>
       ) : (

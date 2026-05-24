@@ -458,7 +458,7 @@ export const SettingsPage = () => {
           >
             npm run seed
           </code>{" "}
-          to reset the admin account.
+          to reset the admin account
         </p>
       </div>
     </div>
