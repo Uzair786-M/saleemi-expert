@@ -19,10 +19,15 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Verify token on app start
   useEffect(() => {
     const verify = async () => {
+      const token = localStorage.getItem("se_token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       try {
-        // getAdminMe returns { success, user } — the full response body
         const res = await getAdminMe();
         const user = res?.user;
         if (user) {
@@ -30,11 +35,14 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem("se_admin", JSON.stringify(user));
         } else {
           setAdmin(null);
+          localStorage.removeItem("se_token");
           localStorage.removeItem("se_admin");
         }
       } catch {
-        // 401 or network error — keep whatever is in localStorage
-        // so admin panel doesn't flash logout on slow networks
+        // Token invalid — clear
+        setAdmin(null);
+        localStorage.removeItem("se_token");
+        localStorage.removeItem("se_admin");
       } finally {
         setLoading(false);
       }
@@ -43,13 +51,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = useCallback(async (email, password) => {
-    // loginAdmin returns { success, user } — the full response body
     const res = await loginAdmin(email.trim(), password);
     const user = res?.user;
-    if (!user) throw new Error("Login failed. No user returned.");
+    const token = res?.token;
+    if (!user || !token) throw new Error("Login failed.");
     if (user.role !== "admin") throw new Error("Access denied.");
-    setAdmin(user);
+    // Save token to localStorage — sent via Authorization header on every request
+    localStorage.setItem("se_token", token);
     localStorage.setItem("se_admin", JSON.stringify(user));
+    setAdmin(user);
     return user;
   }, []);
 
@@ -60,6 +70,7 @@ export const AuthProvider = ({ children }) => {
       /* ignore */
     }
     setAdmin(null);
+    localStorage.removeItem("se_token");
     localStorage.removeItem("se_admin");
   }, []);
 
