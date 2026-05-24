@@ -529,8 +529,7 @@ export const LeaveReviewPage = () => {
                   marginTop: "1rem",
                 }}
               >
-                Reviews are reviewed before publishing · Your email is never
-                shown publicly
+                Reviews are reviewed before publishing
               </p>
             </form>
           </div>
