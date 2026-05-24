@@ -1,17 +1,19 @@
 import axios from "axios";
 
-// In production: VITE_API_URL=/api (relative — same domain via Vercel proxy)
-// In development: VITE_API_URL=http://localhost:5000/api
+// Development: http://localhost:5000/api
+// Production:  /api  (proxied via vercel.json to backend)
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const api = axios.create({
   baseURL: BASE,
-  withCredentials: true, // sends cookie on every request
+  withCredentials: true, // sends HttpOnly cookie on every request
   headers: { "Content-Type": "application/json" },
   timeout: 15000,
 });
 
-// Error interceptor
+// NO request interceptor — no Bearer token — cookie handles auth
+
+// Error interceptor only
 api.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -29,7 +31,7 @@ api.interceptors.response.use(
       (err.code === "ECONNABORTED"
         ? "Request timed out."
         : !err.response
-          ? "Cannot reach server. Is backend running?"
+          ? "Cannot reach server. Is backend running on port 5000?"
           : err.response.status >= 500
             ? "Server error. Try again later."
             : "Something went wrong.");
