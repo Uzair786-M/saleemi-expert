@@ -254,74 +254,96 @@ export const AboutAdminPage = () => {
           ))}
         </div>
 
+        {/* CV URL */}
+        <div style={{ marginBottom: "1rem" }}>
+          <label style={labelStyle}>CV / Resume URL</label>
+          <input
+            name="cvUrl"
+            value={profile.cvUrl || ""}
+            onChange={handleProfile}
+            placeholder="https://drive.google.com/file/d/YOUR_FILE_ID/view or any direct PDF link"
+            style={inputStyle}
+            onFocus={focus()}
+            onBlur={blur}
+          />
+          <p
+            style={{ color: "#6b7280", fontSize: "0.75rem", marginTop: "5px" }}
+          >
+            Upload your CV to Google Drive → right click → Get link → change to
+            "Anyone with link" → paste here. Leave empty to hide the Download CV
+            button.
+          </p>
+        </div>
+
         {/* Photo URL with live preview */}
         <div style={{ marginBottom: "1rem" }}>
           <label style={labelStyle}>Profile Photo</label>
-          <div
-            style={{
-              display: "flex",
-              gap: "1rem",
-              alignItems: "flex-start",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: "200px" }}>
-              <input
-                name="photo"
-                value={profile.photo || ""}
-                onChange={handleProfile}
-                placeholder="Paste image URL: https://... or /images/photo.jpg"
-                style={inputStyle}
-                onFocus={focus()}
-                onBlur={blur}
-              />
-              <p
-                style={{
-                  color: "#6b7280",
-                  fontSize: "0.75rem",
-                  marginTop: "6px",
-                }}
-              >
-                Paste any public image URL. To use a local image, put it in your{" "}
-                <code style={{ color: "#9ca3af" }}>public/images/</code> folder
-                and type{" "}
-                <code style={{ color: "#9ca3af" }}>/images/yourphoto.jpg</code>
-              </p>
-            </div>
-            {/* Live preview */}
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+            {/* Input field */}
+            <input
+              name="photo"
+              value={profile.photo || ""}
+              onChange={handleProfile}
+              placeholder="Paste image URL: https://... or /images/photo.jpg"
+              style={{ ...inputStyle, flex: 1 }}
+              onFocus={focus()}
+              onBlur={blur}
+            />
+            {/* Live preview circle — same height as input, aligned center */}
             <div
               style={{
-                width: "80px",
-                height: "80px",
+                width: "44px",
+                height: "44px",
                 borderRadius: "9999px",
                 flexShrink: 0,
-                border: "2px solid rgba(34,211,238,0.3)",
+                border: "2px solid rgba(34,211,238,0.35)",
                 overflow: "hidden",
                 backgroundColor: "#0d1224",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1.75rem",
+                fontSize: "0.75rem",
                 color: "#22d3ee",
                 fontWeight: 700,
               }}
             >
               {profile.photo ? (
                 <img
+                  key={profile.photo}
                   src={profile.photo}
                   alt="preview"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
                   onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextSibling.style.display = "flex";
                   }}
                 />
               ) : null}
-              <span style={{ display: profile.photo ? "none" : "flex" }}>
+              <span
+                style={{
+                  display: profile.photo ? "none" : "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
                 SE
               </span>
             </div>
           </div>
+          <p
+            style={{ color: "#6b7280", fontSize: "0.75rem", marginTop: "6px" }}
+          >
+            Paste any public image URL — or put a photo in{" "}
+            <code style={{ color: "#9ca3af" }}>public/images/</code> and type{" "}
+            <code style={{ color: "#9ca3af" }}>/images/yourphoto.jpg</code>
+          </p>
         </div>
         <div style={{ marginBottom: "1rem" }}>
           <label style={labelStyle}>Bio (Paragraph 1)</label>
