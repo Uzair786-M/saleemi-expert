@@ -2,32 +2,19 @@
 // SocialIcon — renders real brand SVG icon or falls back to emoji
 // No library needed — inline SVGs for the most common platforms
 // ─────────────────────────────────────────────────────────────
-<svg
-  viewBox="0 0 24 24"
-  width="16"
-  height="16"
-  fill={color || "#1dbf73"}
-  xmlns="http://www.w3.org/2000/svg"
->
-  <circle class="a" cx="254.01" cy="254.01" r="254.01" />
-  <circle class="b" cx="315.97" cy="162.19" r="26.87" />
-  <path
-    class="b"
-    d="M345.87,207.66h-123V199.6c0-15.83,15.83-16.13,23.89-16.13,9.25,0,13.44.9,13.44.9v-43.6a155.21,155.21,0,0,0-19.71-1.19c-25.68,0-73.16,7.16-73.16,61.51V208h-22.4v40.31h22.4v85.1h-20.9v40.31H247.34V333.37H222.85v-85.1H290v85.1H269.13v40.31h97.65V333.37H345.87Z"
-    transform="translate(-1.83 -0.98)"
-  />
-</svg>;
+
 const ICONS = {
   fiverr: (color) => (
     <svg
-      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 508.02 508.02"
       width="16"
       height="16"
-      fill={color || "#1dbf73"}
-      xmlns="http://www.w3.org/2000/svg"
     >
+      <circle fill={color || "#1dbf73"} cx="254.01" cy="254.01" r="254.01" />
+      <circle fill="#fff" cx="315.97" cy="162.19" r="26.87" />
       <path
-        class="b"
+        fill="#fff"
         d="M345.87,207.66h-123V199.6c0-15.83,15.83-16.13,23.89-16.13,9.25,0,13.44.9,13.44.9v-43.6a155.21,155.21,0,0,0-19.71-1.19c-25.68,0-73.16,7.16-73.16,61.51V208h-22.4v40.31h22.4v85.1h-20.9v40.31H247.34V333.37H222.85v-85.1H290v85.1H269.13v40.31h97.65V333.37H345.87Z"
         transform="translate(-1.83 -0.98)"
       />
