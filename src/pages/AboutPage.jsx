@@ -423,32 +423,38 @@ export const AboutPage = () => {
                 >
                   Hire Me
                 </Link>
-                <a
-                  href="/cv.pdf"
-                  download
-                  style={{
-                    padding:
-                      "clamp(11px, 1.2vw, 16px) clamp(24px, 2.5vw, 40px)",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    color: "#ffffff",
-                    borderRadius: "10px",
-                    textDecoration: "none",
-                    fontWeight: 700,
-                    fontSize: "clamp(0.875rem, 1.1vw, 1.1rem)",
-                    transition: "all 0.2s",
-                    backgroundColor: "transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#22d3ee";
-                    e.currentTarget.style.color = "#22d3ee";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
-                    e.currentTarget.style.color = "#ffffff";
-                  }}
-                >
-                  📄 Download CV
-                </a>
+                {/* CV download — only shown if URL is set in admin panel */}
+                {owner.cvUrl && (
+                  <a
+                    href={owner.cvUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      padding:
+                        "clamp(11px, 1.2vw, 16px) clamp(24px, 2.5vw, 40px)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      color: "#ffffff",
+                      borderRadius: "10px",
+                      textDecoration: "none",
+                      fontWeight: 700,
+                      fontSize: "clamp(0.875rem, 1.1vw, 1.1rem)",
+                      transition: "all 0.2s",
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#22d3ee";
+                      e.currentTarget.style.color = "#22d3ee";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.2)";
+                      e.currentTarget.style.color = "#ffffff";
+                    }}
+                  >
+                    📄 Download CV
+                  </a>
+                )}
               </div>
 
               {/* Social links */}
