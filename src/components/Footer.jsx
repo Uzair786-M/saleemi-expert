@@ -35,7 +35,7 @@ export const Footer = () => {
           }}
         >
           {/* Brand */}
-          <div>
+          <div style={{ textAlign: "center" }}>
             <Link to="/" style={{ textDecoration: "none" }}>
               <span
                 style={{
@@ -53,14 +53,13 @@ export const Footer = () => {
                 fontSize: "clamp(0.8rem, 1vw, 0.95rem)",
                 lineHeight: 1.7,
                 marginTop: "0.75rem",
-                maxWidth: "220px",
               }}
             >
               {owner.tagline ||
                 "E-commerce Expert | CSV & Bulk Product Automation | Web Developer"}
             </p>
 
-            {/* Social icon buttons — dynamic from database */}
+            {/* Social icon buttons */}
             {socialLinks.length > 0 && (
               <div
                 style={{
@@ -68,6 +67,7 @@ export const Footer = () => {
                   gap: "8px",
                   marginTop: "1.25rem",
                   flexWrap: "wrap",
+                  justifyContent: "center",
                 }}
               >
                 {socialLinks.map((link, i) => (
@@ -147,7 +147,7 @@ export const Footer = () => {
           </div>
 
           {/* Quick links */}
-          <div>
+          <div style={{ textAlign: "center" }}>
             <h4
               style={{
                 color: "#ffffff",
@@ -166,6 +166,7 @@ export const Footer = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "10px",
+                alignItems: "center",
               }}
             >
               {navLinks.map(({ label, to }) => (
@@ -193,7 +194,7 @@ export const Footer = () => {
           </div>
 
           {/* Services */}
-          <div>
+          <div style={{ textAlign: "center" }}>
             <h4
               style={{
                 color: "#ffffff",
@@ -212,6 +213,7 @@ export const Footer = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "10px",
+                alignItems: "center",
               }}
             >
               {[
@@ -246,7 +248,7 @@ export const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div>
+          <div style={{ textAlign: "center" }}>
             <h4
               style={{
                 color: "#ffffff",
@@ -260,7 +262,12 @@ export const Footer = () => {
               Get In Touch
             </h4>
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                alignItems: "center",
+              }}
             >
               {owner.email && (
                 <a
@@ -321,15 +328,13 @@ export const Footer = () => {
                   📍 {owner.location}
                 </p>
               )}
-
-              {/* Platform label badges — dynamic */}
               {socialLinks.length > 0 && (
                 <div
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
                     gap: "6px",
-                    marginTop: "4px",
+                    justifyContent: "center",
                   }}
                 >
                   {socialLinks.map((link, i) => (
@@ -356,7 +361,13 @@ export const Footer = () => {
                         (e.currentTarget.style.backgroundColor = `${link.color}18`)
                       }
                     >
-                      {link.icon} {link.label}
+                      <SocialIcon
+                        label={link.label}
+                        icon={link.icon}
+                        color={link.color}
+                        size={12}
+                      />{" "}
+                      {link.label}
                     </a>
                   ))}
                 </div>
