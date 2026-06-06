@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { SiteDataProvider } from "./context/SiteDataContext";
 import { ProtectedRoute } from "./components/admin/ProtectedRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
+import { WithPermission } from "./components/admin/WithPermission";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
@@ -24,16 +25,16 @@ import { LeaveReviewPage } from "./pages/LeaveReviewPage";
 import { LoginPage } from "./pages/admin/LoginPage";
 import { DashboardPage } from "./pages/admin/DashboardPage";
 import { MessagesPage } from "./pages/admin/MessagesPage";
+import { MailboxPage } from "./pages/admin/MailboxPage";
 import { TestimonialsAdminPage } from "./pages/admin/TestimonialsAdminPage";
 import { ReviewsAdminPage } from "./pages/admin/ReviewsAdminPage";
 import { PortfolioAdminPage } from "./pages/admin/PortfolioAdminPage";
 import { ServicesAdminPage } from "./pages/admin/ServicesAdminPage";
 import { AboutAdminPage } from "./pages/admin/AboutAdminPage";
-import { PricingAdminPage } from "./pages/admin/PricingAdminPage";
-import { SettingsPage } from "./pages/admin/SettingsPage";
-import { EmailSettingsPage } from "./pages/admin/EmailSettingsPage";
-import { MailboxPage } from "./pages/admin/MailboxPage";
 import { StatsAdminPage } from "./pages/admin/StatsAdminPage";
+import { PricingAdminPage } from "./pages/admin/PricingAdminPage";
+import { EmailSettingsPage } from "./pages/admin/EmailSettingsPage";
+import { SettingsPage } from "./pages/admin/SettingsPage";
 import { TeamPage } from "./pages/admin/TeamPage";
 
 // ── Layout wrappers ────────────────────────────────────────────
@@ -46,9 +47,12 @@ const PublicLayout = ({ children }) => (
   </>
 );
 
-const AdminPage = ({ children }) => (
+// Wraps admin pages: requires login + checks permission
+const AdminPage = ({ permission, children }) => (
   <ProtectedRoute>
-    <AdminLayout>{children}</AdminLayout>
+    <AdminLayout>
+      <WithPermission permission={permission}>{children}</WithPermission>
+    </AdminLayout>
   </ProtectedRoute>
 );
 
@@ -118,109 +122,122 @@ export default function App() {
             />
             <Route path="/leave-review" element={<LeaveReviewPage />} />
 
-            {/* ── Admin pages ── */}
+            {/* ── Admin pages — each has its permission key ── */}
             <Route path="/admin/login" element={<LoginPage />} />
             <Route
               path="/admin"
               element={
-                <AdminPage>
-                  <DashboardPage />
+                <AdminPage permission="dashboard">
+                  {" "}
+                  <DashboardPage />{" "}
                 </AdminPage>
               }
             />
             <Route
               path="/admin/messages"
               element={
-                <AdminPage>
-                  <MessagesPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/reviews"
-              element={
-                <AdminPage>
-                  <ReviewsAdminPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/testimonials"
-              element={
-                <AdminPage>
-                  <TestimonialsAdminPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/portfolio"
-              element={
-                <AdminPage>
-                  <PortfolioAdminPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/services"
-              element={
-                <AdminPage>
-                  <ServicesAdminPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/about"
-              element={
-                <AdminPage>
-                  <AboutAdminPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/pricing"
-              element={
-                <AdminPage>
-                  <PricingAdminPage />
-                </AdminPage>
-              }
-            />
-            <Route
-              path="/admin/email-settings"
-              element={
-                <AdminPage>
-                  <EmailSettingsPage />
+                <AdminPage permission="messages">
+                  {" "}
+                  <MessagesPage />{" "}
                 </AdminPage>
               }
             />
             <Route
               path="/admin/mailbox"
               element={
-                <AdminPage>
-                  <MailboxPage />
+                <AdminPage permission="mailbox">
+                  {" "}
+                  <MailboxPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/reviews"
+              element={
+                <AdminPage permission="reviews">
+                  {" "}
+                  <ReviewsAdminPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/testimonials"
+              element={
+                <AdminPage permission="testimonials">
+                  {" "}
+                  <TestimonialsAdminPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/portfolio"
+              element={
+                <AdminPage permission="portfolio">
+                  {" "}
+                  <PortfolioAdminPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/services"
+              element={
+                <AdminPage permission="services">
+                  {" "}
+                  <ServicesAdminPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/about"
+              element={
+                <AdminPage permission="about">
+                  {" "}
+                  <AboutAdminPage />{" "}
                 </AdminPage>
               }
             />
             <Route
               path="/admin/stats"
               element={
-                <AdminPage>
-                  <StatsAdminPage />
+                <AdminPage permission="stats">
+                  {" "}
+                  <StatsAdminPage />{" "}
                 </AdminPage>
               }
             />
             <Route
-              path="/admin/team"
+              path="/admin/pricing"
               element={
-                <AdminPage>
-                  <TeamPage />
+                <AdminPage permission="pricing">
+                  {" "}
+                  <PricingAdminPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/email-settings"
+              element={
+                <AdminPage permission="email_settings">
+                  {" "}
+                  <EmailSettingsPage />{" "}
                 </AdminPage>
               }
             />
             <Route
               path="/admin/settings"
               element={
-                <AdminPage>
-                  <SettingsPage />
+                <AdminPage permission="settings">
+                  {" "}
+                  <SettingsPage />{" "}
+                </AdminPage>
+              }
+            />
+            <Route
+              path="/admin/team"
+              element={
+                <AdminPage permission="team">
+                  {" "}
+                  <TeamPage />{" "}
                 </AdminPage>
               }
             />
