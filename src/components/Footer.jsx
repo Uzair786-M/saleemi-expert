@@ -344,15 +344,18 @@ export const Footer = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        padding: "4px 12px",
+                        padding: "5px 12px",
                         borderRadius: "9999px",
-                        fontSize: "0.7rem",
+                        fontSize: "0.78rem",
                         fontWeight: 700,
                         textDecoration: "none",
                         backgroundColor: `${link.color}18`,
                         color: link.color,
                         border: `1px solid ${link.color}40`,
                         transition: "all 0.2s",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "5px",
                       }}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.backgroundColor = `${link.color}30`)
@@ -365,8 +368,8 @@ export const Footer = () => {
                         label={link.label}
                         icon={link.icon}
                         color={link.color}
-                        size={12}
-                      />{" "}
+                        size={13}
+                      />
                       {link.label}
                     </a>
                   ))}

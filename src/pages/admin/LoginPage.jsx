@@ -1,87 +1,46 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 export const LoginPage = () => {
-  const { login, isAuthenticated, isAdmin, loading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || "/admin";
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // If already logged in as admin — redirect away from login page
-  useEffect(() => {
-    if (!loading && isAuthenticated && isAdmin) {
-      navigate(from, { replace: true });
-    }
-  }, [loading, isAuthenticated, isAdmin]);
+  const { login } = useAuth();
 
-  // Show spinner while auth is being checked
-  if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "#050816",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "44px",
-            height: "44px",
-            border: "3px solid rgba(34,211,238,0.15)",
-            borderTop: "3px solid #22d3ee",
-            borderRadius: "9999px",
-            animation: "spin 0.8s linear infinite",
-          }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
+  const handleLogin = async () => {
     if (!email.trim()) {
-      setError("Email is required.");
+      setError("Enter your email.");
       return;
     }
     if (!password.trim()) {
-      setError("Password is required.");
+      setError("Enter your password.");
       return;
     }
-
-    setSubmitting(true);
+    setLoading(true);
+    setError("");
     try {
-      await login(email.trim(), password);
-      navigate("/admin", { replace: true });
+      await login(email.trim().toLowerCase(), password);
+      // login() sets admin in context — redirect to admin panel
+      window.location.href = "/admin";
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
+      setError(err.message || "Invalid email or password.");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const inputStyle = {
+  const inp = {
     width: "100%",
-    padding: "14px 18px",
-    backgroundColor: "rgba(255,255,255,0.06)",
+    padding: "13px 16px",
+    background: "rgba(255,255,255,0.06)",
     border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: "12px",
-    color: "#ffffff",
+    borderRadius: "10px",
+    color: "#fff",
     fontSize: "1rem",
     outline: "none",
-    transition: "border-color 0.2s",
     boxSizing: "border-box",
   };
 
@@ -89,102 +48,91 @@ export const LoginPage = () => {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#050816",
+        background: "#050816",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "1.5rem",
       }}
     >
-      {/* Background glow */}
       <div
         style={{
           position: "fixed",
           top: "15%",
           left: "50%",
           transform: "translateX(-50%)",
-          width: "600px",
-          height: "400px",
-          backgroundColor: "rgba(6,182,212,0.08)",
+          width: "500px",
+          height: "300px",
+          background: "rgba(6,182,212,0.08)",
           borderRadius: "9999px",
-          filter: "blur(120px)",
+          filter: "blur(100px)",
           pointerEvents: "none",
-          zIndex: 0,
         }}
       />
 
-      {/* Card */}
       <div
         style={{
-          position: "relative",
-          zIndex: 1,
           width: "100%",
           maxWidth: "420px",
-          backgroundColor: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "24px",
-          padding: "2.5rem",
-          backdropFilter: "blur(20px)",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        {/* Logo */}
+        {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <div
-              style={{ fontSize: "1.75rem", fontWeight: 800, color: "#ffffff" }}
-            >
-              Saleemi<span style={{ color: "#22d3ee" }}>Expert</span>
-            </div>
-          </Link>
-          <p style={{ color: "#6b7280", fontSize: "0.8rem", marginTop: "4px" }}>
-            Admin Panel
-          </p>
-          <div
+          <h1
             style={{
-              marginTop: "1.5rem",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
-              paddingTop: "1.5rem",
+              color: "#fff",
+              fontSize: "1.75rem",
+              fontWeight: 900,
+              marginBottom: "4px",
             }}
           >
-            <h1
-              style={{
-                color: "#ffffff",
-                fontSize: "1.4rem",
-                fontWeight: 700,
-                margin: 0,
-              }}
-            >
-              🔐 Sign In
-            </h1>
-          </div>
+            Saleemi<span style={{ color: "#22d3ee" }}>Expert</span>
+          </h1>
+          <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>Admin Panel</p>
         </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+        {/* Card */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "18px",
+            padding: "2rem",
+          }}
         >
+          <h2
+            style={{
+              color: "#fff",
+              fontSize: "1.4rem",
+              fontWeight: 800,
+              textAlign: "center",
+              marginBottom: "1.75rem",
+            }}
+          >
+            🔐 Sign In
+          </h2>
+
           {/* Email */}
-          <div>
+          <div style={{ marginBottom: "1rem" }}>
             <label
               style={{
                 color: "#9ca3af",
-                fontSize: "0.85rem",
-                fontWeight: 500,
+                fontSize: "0.82rem",
                 display: "block",
-                marginBottom: "8px",
+                marginBottom: "6px",
               }}
             >
-              Email Address
+              Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               placeholder="admin@saleemiexpert.com"
-              autoComplete="email"
-              style={inputStyle}
+              style={inp}
               onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
               onBlur={(e) =>
                 (e.target.style.borderColor = "rgba(255,255,255,0.12)")
@@ -193,14 +141,13 @@ export const LoginPage = () => {
           </div>
 
           {/* Password */}
-          <div>
+          <div style={{ marginBottom: "1.25rem" }}>
             <label
               style={{
                 color: "#9ca3af",
-                fontSize: "0.85rem",
-                fontWeight: 500,
+                fontSize: "0.82rem",
                 display: "block",
-                marginBottom: "8px",
+                marginBottom: "6px",
               }}
             >
               Password
@@ -210,9 +157,9 @@ export const LoginPage = () => {
                 type={showPass ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 placeholder="••••••••"
-                autoComplete="current-password"
-                style={{ ...inputStyle, paddingRight: "52px" }}
+                style={{ ...inp, paddingRight: "48px" }}
                 onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
                 onBlur={(e) =>
                   (e.target.style.borderColor = "rgba(255,255,255,0.12)")
@@ -223,14 +170,14 @@ export const LoginPage = () => {
                 onClick={() => setShowPass((p) => !p)}
                 style={{
                   position: "absolute",
-                  right: "14px",
+                  right: "12px",
                   top: "50%",
                   transform: "translateY(-50%)",
                   background: "none",
                   border: "none",
                   color: "#6b7280",
                   cursor: "pointer",
-                  fontSize: "1.1rem",
+                  fontSize: "1rem",
                 }}
               >
                 {showPass ? "🙈" : "👁️"}
@@ -242,89 +189,80 @@ export const LoginPage = () => {
           {error && (
             <div
               style={{
-                padding: "12px 16px",
-                backgroundColor: "rgba(239,68,68,0.1)",
+                padding: "10px 14px",
+                background: "rgba(239,68,68,0.1)",
                 border: "1px solid rgba(239,68,68,0.25)",
-                borderRadius: "10px",
+                borderRadius: "8px",
                 color: "#f87171",
                 fontSize: "0.875rem",
+                marginBottom: "1rem",
               }}
             >
               ❌ {error}
             </div>
           )}
 
-          {/* Submit */}
+          {/* Button */}
           <button
-            type="submit"
-            disabled={submitting}
+            onClick={handleLogin}
+            disabled={loading}
             style={{
               width: "100%",
-              padding: "14px",
-              marginTop: "4px",
-              backgroundColor: submitting ? "#0e7490" : "#06b6d4",
-              color: "#ffffff",
+              padding: "13px",
+              background: loading ? "#0e7490" : "#06b6d4",
+              color: "#fff",
               border: "none",
-              borderRadius: "12px",
+              borderRadius: "10px",
               fontWeight: 700,
               fontSize: "1rem",
-              cursor: submitting ? "not-allowed" : "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "10px",
-              transition: "background-color 0.2s",
+              gap: "8px",
+              transition: "background 0.2s",
             }}
             onMouseEnter={(e) => {
-              if (!submitting)
-                e.currentTarget.style.backgroundColor = "#22d3ee";
+              if (!loading) e.currentTarget.style.background = "#22d3ee";
             }}
             onMouseLeave={(e) => {
-              if (!submitting)
-                e.currentTarget.style.backgroundColor = submitting
-                  ? "#0e7490"
-                  : "#06b6d4";
+              if (!loading) e.currentTarget.style.background = "#06b6d4";
             }}
           >
-            {submitting ? (
+            {loading ? (
               <>
                 <span
                   style={{
-                    width: "18px",
-                    height: "18px",
+                    width: "16px",
+                    height: "16px",
                     border: "2px solid rgba(255,255,255,0.3)",
                     borderTop: "2px solid #fff",
                     borderRadius: "9999px",
-                    animation: "spin 0.8s linear infinite",
+                    animation: "spin 0.7s linear infinite",
                     display: "inline-block",
                   }}
-                />
+                />{" "}
                 Signing in...
               </>
             ) : (
               "Sign In →"
             )}
           </button>
-        </form>
+        </div>
 
-        {/* Back */}
-        <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          <Link
-            to="/"
+        <div style={{ textAlign: "center", marginTop: "1.25rem" }}>
+          <a
+            href="/"
             style={{
               color: "#6b7280",
               textDecoration: "none",
               fontSize: "0.875rem",
-              transition: "color 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#22d3ee")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
           >
             ← Back to Website
-          </Link>
+          </a>
         </div>
       </div>
-
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

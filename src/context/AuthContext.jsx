@@ -5,27 +5,21 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { loginAdmin, logoutAdmin, getAdminMe } from "../services/api.js";
+import api from "../services/httpClient.js";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [admin, setAdmin] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("se_admin") || "null");
-    } catch {
-      return null;
-    }
-  });
-  const [loading, setLoading] = useState(true);
+  const [admin, setAdmin] = useState(null); // always null until verified
+  const [loading, setLoading] = useState(true); // true until backend responds
 
-  // On app start — verify session with backend via cookie
+  // On every app start — verify session with backend
+  // Only set admin if backend confirms the cookie is valid
   useEffect(() => {
     const verify = async () => {
       try {
-        // Cookie sent automatically — backend verifies it
-        const res = await getAdminMe();
-        const user = res?.user;
+        const res = await api.get("/auth/me");
+        const user = res.data?.user;
         if (user) {
           setAdmin(user);
           localStorage.setItem("se_admin", JSON.stringify(user));
@@ -34,7 +28,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem("se_admin");
         }
       } catch {
-        // No valid cookie — clear admin
+        // Cookie invalid or expired — clear everything
         setAdmin(null);
         localStorage.removeItem("se_admin");
       } finally {
@@ -45,21 +39,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = useCallback(async (email, password) => {
-    // Backend sets HttpOnly cookie in response
-    // We just need the user object from the response body
-    const res = await loginAdmin(email.trim(), password);
-    const user = res?.user;
-    if (!user) throw new Error("Login failed. Please try again.");
-    if (user.role !== "admin") throw new Error("Access denied.");
-    // Save user info for display only (not for auth — cookie handles auth)
-    localStorage.setItem("se_admin", JSON.stringify(user));
+    const res = await api.post("/auth/login", { email, password });
+    const user = res.data?.user;
+    if (!user) throw new Error("Login failed.");
     setAdmin(user);
+    localStorage.setItem("se_admin", JSON.stringify(user));
     return user;
   }, []);
 
   const logout = useCallback(async () => {
     try {
-      await logoutAdmin();
+      await api.post("/auth/logout");
     } catch {
       /* ignore */
     }
@@ -67,13 +57,23 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("se_admin");
   }, []);
 
+  const hasPermission = useCallback(
+    (permission) => {
+      if (!admin) return false;
+      if (admin.role === "superadmin") return true;
+      return admin.permissions?.includes(permission) ?? false;
+    },
+    [admin],
+  );
+
   return (
     <AuthContext.Provider
       value={{
         admin,
         loading,
         isAuthenticated: !!admin,
-        isAdmin: admin?.role === "admin",
+        isSuperAdmin: admin?.role === "superadmin",
+        hasPermission,
         login,
         logout,
       }}
