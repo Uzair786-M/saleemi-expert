@@ -71,6 +71,7 @@ export const MailboxPage = () => {
   const [history, setHistory] = useState([]);
   const [hLoading, setHLoading] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [isFiltered, setIsFiltered] = useState(false);
   const [viewEmail, setViewEmail] = useState(null); // full email modal
 
   // ── Load sent email history ───────────────────────────────
@@ -79,6 +80,7 @@ export const MailboxPage = () => {
     try {
       const data = await apiCall("/contact/sent-emails");
       setHistory(data.data || []);
+      setIsFiltered(data.isFiltered || false);
     } catch (err) {
       console.error(err.message);
     } finally {
@@ -615,6 +617,30 @@ export const MailboxPage = () => {
       {/* ── History Tab ── */}
       {tab === "history" && (
         <div>
+          {/* Filtered notice for non-superadmin */}
+          {isFiltered && (
+            <div
+              style={{
+                padding: "10px 16px",
+                borderRadius: "10px",
+                backgroundColor: "rgba(34,211,238,0.06)",
+                border: "1px solid rgba(34,211,238,0.15)",
+                marginBottom: "1.25rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "1.1rem" }}>🔒</span>
+              <p style={{ color: "#9ca3af", fontSize: "0.82rem" }}>
+                You are viewing{" "}
+                <strong style={{ color: "#22d3ee" }}>
+                  your sent emails only
+                </strong>
+                . Super admin can see all emails from all team members.
+              </p>
+            </div>
+          )}
           <div
             style={{
               display: "flex",
