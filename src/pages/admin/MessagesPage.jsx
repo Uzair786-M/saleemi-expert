@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchMessages, updateMessageStatus, replyToMessage, deleteMessage } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../services/httpClient.js";
 
 const statusColor = { unread: "#22d3ee", read: "#6b7280", replied: "#10b981" };
 const statusBg    = { unread: "rgba(34,211,238,0.1)", read: "rgba(107,114,128,0.1)", replied: "rgba(16,185,129,0.1)" };
@@ -15,6 +16,8 @@ export const MessagesPage = () => {
   const [sending,     setSending]     = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isFiltered,  setIsFiltered]  = useState(false);
+  const [team,        setTeam]        = useState([]);
+  const [assigning,   setAssigning]   = useState(false);
 
   // Load messages from backend
   useEffect(() => {
@@ -80,7 +83,25 @@ export const MessagesPage = () => {
     } catch (err) { console.error(err); }
   };
 
-  return (
+  // Load team for assign dropdown (superadmin only)
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    api.get("/team").then(r => setTeam(r.data?.data || [])).catch(() => {});
+  }, [isSuperAdmin]);
+
+  const handleAssign = async (msgId, memberId, memberName) => {
+    setAssigning(true);
+    try {
+      const res = await api.put(`/contact/${msgId}/assign`, {
+        assignedTo:     memberId   || null,
+        assignedToName: memberName || null,
+      });
+      const updated = res.data?.data;
+      setMessages(prev => prev.map(m => m._id === msgId ? updated : m));
+      if (selected?._id === msgId) setSelected(updated);
+    } catch (err) { alert(err.message); }
+    finally { setAssigning(false); }
+  };
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
@@ -123,6 +144,9 @@ export const MessagesPage = () => {
                     </div>
                   </div>
                   <span style={{ padding: "3px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, color: statusColor[msg.status], backgroundColor: statusBg[msg.status], flexShrink: 0, textTransform: "capitalize" }}>{msg.status}</span>
+                  {msg.assignedToName && isSuperAdmin && (
+                    <span style={{ padding: "3px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, color: "#a78bfa", backgroundColor: "rgba(167,139,250,0.1)", flexShrink: 0 }}>👤 {msg.assignedToName}</span>
+                  )}
                 </div>
                 <p style={{ color: "#d1d5db", fontWeight: 600, fontSize: "0.875rem", marginBottom: "4px" }}>{msg.subject}</p>
                 <p style={{ color: "#6b7280", fontSize: "0.8rem" }}>{msg.message?.slice(0, 70)}...</p>
@@ -145,9 +169,35 @@ export const MessagesPage = () => {
               <div style={{ padding: "1.25rem", backgroundColor: "rgba(255,255,255,0.04)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ color: "#d1d5db", lineHeight: 1.7 }}>{selected.message}</p>
               </div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                 <button onClick={() => handleMarkAs(selected._id, "read")} style={{ padding: "8px 16px", borderRadius: "8px", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", backgroundColor: "rgba(107,114,128,0.15)", color: "#9ca3af", border: "1px solid rgba(107,114,128,0.2)" }}>Mark as Read</button>
                 <button onClick={() => handleDelete(selected._id)} style={{ padding: "8px 16px", borderRadius: "8px", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", backgroundColor: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }}>Delete</button>
+
+                {/* Assign to team member — superadmin only */}
+                {isSuperAdmin && team.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "auto" }}>
+                    <span style={{ color: "#6b7280", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+                      {selected.assignedToName ? `👤 ${selected.assignedToName}` : "Unassigned"}
+                    </span>
+                    <select
+                      value={selected.assignedTo || ""}
+                      onChange={e => {
+                        const member = team.find(m => m._id === e.target.value);
+                        handleAssign(selected._id, e.target.value || null, member?.name || null);
+                      }}
+                      disabled={assigning}
+                      style={{ padding: "6px 10px", backgroundColor: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.25)", borderRadius: "8px", color: "#22d3ee", fontSize: "0.78rem", cursor: "pointer", outline: "none" }}
+                    >
+                      <option value="" style={{ backgroundColor: "#1f2937" }}>Assign to...</option>
+                      <option value="" style={{ backgroundColor: "#1f2937" }}>— Unassign —</option>
+                      {team.map(m => (
+                        <option key={m._id} value={m._id} style={{ backgroundColor: "#1f2937" }}>
+                          {m.name} ({m.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               {/* Reply */}
               <div>
