@@ -64,12 +64,6 @@ export const TeamPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [resetPw, setResetPw] = useState({
-    id: null,
-    value: "",
-    saving: false,
-    show: false,
-  });
 
   // ── New member form ───────────────────────────────────────
   const [newMember, setNewMember] = useState({
@@ -78,8 +72,6 @@ export const TeamPage = () => {
     password: "",
     role: "member",
     permissions: ["dashboard", "messages"],
-    smtpEmail: "",
-    smtpName: "",
   });
 
   const loadMembers = useCallback(async () => {
@@ -148,8 +140,6 @@ export const TeamPage = () => {
           role: editing.role,
           permissions: editing.permissions,
           isActive: editing.isActive,
-          smtpEmail: editing.smtpEmail,
-          smtpName: editing.smtpName,
         }),
       });
       setMembers((prev) =>
@@ -179,89 +169,70 @@ export const TeamPage = () => {
     }
   };
 
-  // ── Reset member password ─────────────────────────────────
-  const handleResetPassword = async () => {
-    if (!resetPw.value || resetPw.value.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-    setResetPw((p) => ({ ...p, saving: true }));
-    setError("");
-    try {
-      await apiCall(`/team/${resetPw.id}/reset-password`, {
-        method: "PUT",
-        body: JSON.stringify({ newPassword: resetPw.value }),
-      });
-      setResetPw({ id: null, value: "", saving: false, show: false });
-      setSuccess("Password reset successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err) {
-      setError(err.message);
-      setResetPw((p) => ({ ...p, saving: false }));
-    }
-  };
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-      gap: "8px",
-      marginTop: "8px",
-    }}
-  >
-    {ALL_PERMISSIONS.map((p) => {
-      const active = permissions.includes(p.key);
-      return (
-        <div
-          key={p.key}
-          onClick={() => onChange(p.key)}
-          style={{
-            padding: "8px 12px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            border: `1px solid ${active ? "rgba(34,211,238,0.4)" : "rgba(255,255,255,0.08)"}`,
-            backgroundColor: active
-              ? "rgba(34,211,238,0.08)"
-              : "rgba(255,255,255,0.03)",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            transition: "all 0.15s",
-          }}
-        >
-          <span
+  const PermissionGrid = ({ permissions, onChange }) => (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+        gap: "8px",
+        marginTop: "8px",
+      }}
+    >
+      {ALL_PERMISSIONS.map((p) => {
+        const active = permissions.includes(p.key);
+        return (
+          <div
+            key={p.key}
+            onClick={() => onChange(p.key)}
             style={{
-              width: "16px",
-              height: "16px",
-              borderRadius: "4px",
-              border: `2px solid ${active ? "#22d3ee" : "rgba(255,255,255,0.2)"}`,
-              backgroundColor: active ? "#22d3ee" : "transparent",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              border: `1px solid ${active ? "rgba(34,211,238,0.4)" : "rgba(255,255,255,0.08)"}`,
+              backgroundColor: active
+                ? "rgba(34,211,238,0.08)"
+                : "rgba(255,255,255,0.03)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
+              gap: "8px",
+              transition: "all 0.15s",
             }}
           >
-            {active && (
-              <span
-                style={{ color: "#000", fontSize: "10px", fontWeight: 900 }}
-              >
-                ✓
-              </span>
-            )}
-          </span>
-          <span
-            style={{
-              color: active ? "#22d3ee" : "#9ca3af",
-              fontSize: "0.8rem",
-              fontWeight: active ? 600 : 400,
-            }}
-          >
-            {p.icon} {p.label}
-          </span>
-        </div>
-      );
-    })}
-  </div>;
+            <span
+              style={{
+                width: "16px",
+                height: "16px",
+                borderRadius: "4px",
+                border: `2px solid ${active ? "#22d3ee" : "rgba(255,255,255,0.2)"}`,
+                backgroundColor: active ? "#22d3ee" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {active && (
+                <span
+                  style={{ color: "#000", fontSize: "10px", fontWeight: 900 }}
+                >
+                  ✓
+                </span>
+              )}
+            </span>
+            <span
+              style={{
+                color: active ? "#22d3ee" : "#9ca3af",
+                fontSize: "0.8rem",
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {p.icon} {p.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   if (!isSuperAdmin)
     return (
@@ -526,65 +497,6 @@ export const TeamPage = () => {
                 </option>
               </select>
             </div>
-            <div>
-              <label
-                style={{
-                  color: "#9ca3af",
-                  fontSize: "0.78rem",
-                  display: "block",
-                  marginBottom: "5px",
-                }}
-              >
-                📧 Sending Email Address
-              </label>
-              <input
-                type="email"
-                value={newMember.smtpEmail}
-                onChange={(e) =>
-                  setNewMember((p) => ({ ...p, smtpEmail: e.target.value }))
-                }
-                placeholder="asifmadni@saleemiexpert.com"
-                style={inputStyle}
-              />
-              <p
-                style={{
-                  color: "#6b7280",
-                  fontSize: "0.7rem",
-                  marginTop: "3px",
-                }}
-              >
-                Emails sent by this member will come from this address
-              </p>
-            </div>
-            <div>
-              <label
-                style={{
-                  color: "#9ca3af",
-                  fontSize: "0.78rem",
-                  display: "block",
-                  marginBottom: "5px",
-                }}
-              >
-                📛 Sender Display Name
-              </label>
-              <input
-                value={newMember.smtpName}
-                onChange={(e) =>
-                  setNewMember((p) => ({ ...p, smtpName: e.target.value }))
-                }
-                placeholder="Asif Madni - SaleemiExpert"
-                style={inputStyle}
-              />
-              <p
-                style={{
-                  color: "#6b7280",
-                  fontSize: "0.7rem",
-                  marginTop: "3px",
-                }}
-              >
-                Name shown to email recipients
-              </p>
-            </div>
           </div>
           <div>
             <label
@@ -748,7 +660,6 @@ export const TeamPage = () => {
                     <p style={{ color: "#6b7280", fontSize: "0.78rem" }}>
                       {member.email} · {member.permissions?.length || 0}{" "}
                       permissions
-                      {member.smtpEmail ? " · 📧 " + member.smtpEmail : ""}
                     </p>
                   </div>
                 </div>
@@ -916,83 +827,6 @@ export const TeamPage = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* SMTP Email fields */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gap: "12px",
-                      gridTemplateColumns: "1fr 1fr",
-                      marginBottom: "1.25rem",
-                    }}
-                  >
-                    <div>
-                      <label
-                        style={{
-                          color: "#9ca3af",
-                          fontSize: "0.78rem",
-                          display: "block",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        📧 Sending Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={editing.smtpEmail || ""}
-                        onChange={(e) =>
-                          setEditing((p) => ({
-                            ...p,
-                            smtpEmail: e.target.value,
-                          }))
-                        }
-                        placeholder="asifmadni@saleemiexpert.com"
-                        style={inputStyle}
-                      />
-                      <p
-                        style={{
-                          color: "#6b7280",
-                          fontSize: "0.7rem",
-                          marginTop: "3px",
-                        }}
-                      >
-                        Emails sent by this member come from this address
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        style={{
-                          color: "#9ca3af",
-                          fontSize: "0.78rem",
-                          display: "block",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        📛 Sender Display Name
-                      </label>
-                      <input
-                        value={editing.smtpName || ""}
-                        onChange={(e) =>
-                          setEditing((p) => ({
-                            ...p,
-                            smtpName: e.target.value,
-                          }))
-                        }
-                        placeholder="Asif Madni - SaleemiExpert"
-                        style={inputStyle}
-                      />
-                      <p
-                        style={{
-                          color: "#6b7280",
-                          fontSize: "0.7rem",
-                          marginTop: "3px",
-                        }}
-                      >
-                        Name shown to email recipients
-                      </p>
-                    </div>
-                  </div>
-
                   <label
                     style={{
                       color: "#9ca3af",
@@ -1019,7 +853,6 @@ export const TeamPage = () => {
                       display: "flex",
                       gap: "10px",
                       marginTop: "1.25rem",
-                      flexWrap: "wrap",
                     }}
                   >
                     <button
@@ -1038,26 +871,6 @@ export const TeamPage = () => {
                       {saving ? "Saving..." : "Save Changes"}
                     </button>
                     <button
-                      onClick={() =>
-                        setResetPw((p) => ({
-                          ...p,
-                          id: editing._id,
-                          show: !p.show,
-                        }))
-                      }
-                      style={{
-                        padding: "10px 24px",
-                        backgroundColor: "rgba(245,158,11,0.1)",
-                        color: "#f59e0b",
-                        border: "1px solid rgba(245,158,11,0.25)",
-                        borderRadius: "10px",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      🔑 Reset Password
-                    </button>
-                    <button
                       onClick={() => setEditing(null)}
                       style={{
                         padding: "10px 24px",
@@ -1071,106 +884,6 @@ export const TeamPage = () => {
                       Cancel
                     </button>
                   </div>
-
-                  {/* Reset Password Panel */}
-                  {resetPw.show && resetPw.id === editing._id && (
-                    <div
-                      style={{
-                        marginTop: "1rem",
-                        padding: "1.25rem",
-                        borderRadius: "12px",
-                        backgroundColor: "rgba(245,158,11,0.07)",
-                        border: "1px solid rgba(245,158,11,0.2)",
-                      }}
-                    >
-                      <p
-                        style={{
-                          color: "#f59e0b",
-                          fontWeight: 700,
-                          fontSize: "0.875rem",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        🔑 Set New Password for {editing.name}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "10px",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <input
-                          type="text"
-                          value={resetPw.value}
-                          onChange={(e) =>
-                            setResetPw((p) => ({ ...p, value: e.target.value }))
-                          }
-                          placeholder="Enter new password (min 6 chars)"
-                          style={{
-                            flex: 1,
-                            minWidth: "200px",
-                            padding: "10px 14px",
-                            backgroundColor: "rgba(255,255,255,0.06)",
-                            border: "1px solid rgba(245,158,11,0.3)",
-                            borderRadius: "8px",
-                            color: "#fff",
-                            fontSize: "0.875rem",
-                            outline: "none",
-                          }}
-                        />
-                        <button
-                          onClick={handleResetPassword}
-                          disabled={resetPw.saving}
-                          style={{
-                            padding: "10px 20px",
-                            backgroundColor: "#f59e0b",
-                            color: "#000",
-                            border: "none",
-                            borderRadius: "8px",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {resetPw.saving ? "Saving..." : "Set Password"}
-                        </button>
-                        <button
-                          onClick={() =>
-                            setResetPw({
-                              id: null,
-                              value: "",
-                              saving: false,
-                              show: false,
-                            })
-                          }
-                          style={{
-                            padding: "10px 16px",
-                            backgroundColor: "transparent",
-                            color: "#9ca3af",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                      <p
-                        style={{
-                          color: "#9ca3af",
-                          fontSize: "0.75rem",
-                          marginTop: "8px",
-                        }}
-                      >
-                        The member will use this new password to login at{" "}
-                        {window.location.origin}/admin/login
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
