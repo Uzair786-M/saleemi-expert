@@ -59,19 +59,26 @@ export const TeamPage = () => {
   const { admin: currentUser, isSuperAdmin } = useAuth();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // member being edited
+  const [editing, setEditing] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [resetPw, setResetPw] = useState({
+    id: null,
+    value: "",
+    saving: false,
+    show: false,
+  });
 
-  // ── New member form ───────────────────────────────────────
   const [newMember, setNewMember] = useState({
     name: "",
     email: "",
     password: "",
     role: "member",
     permissions: ["dashboard", "messages"],
+    smtpEmail: "",
+    smtpName: "",
   });
 
   const loadMembers = useCallback(async () => {
@@ -90,18 +97,6 @@ export const TeamPage = () => {
     loadMembers();
   }, [loadMembers]);
 
-  const togglePerm = (member, perm, isSetter) => {
-    if (isSetter) {
-      isSetter((prev) => {
-        const perms = prev.permissions.includes(perm)
-          ? prev.permissions.filter((p) => p !== perm)
-          : [...prev.permissions, perm];
-        return { ...prev, permissions: perms };
-      });
-    }
-  };
-
-  // ── Add member ────────────────────────────────────────────
   const handleAdd = async () => {
     setError("");
     setSaving(true);
@@ -118,6 +113,8 @@ export const TeamPage = () => {
         password: "",
         role: "member",
         permissions: ["dashboard", "messages"],
+        smtpEmail: "",
+        smtpName: "",
       });
       setSuccess(data.message);
       setTimeout(() => setSuccess(""), 3000);
@@ -128,7 +125,6 @@ export const TeamPage = () => {
     }
   };
 
-  // ── Update member ─────────────────────────────────────────
   const handleUpdate = async () => {
     setError("");
     setSaving(true);
@@ -140,6 +136,8 @@ export const TeamPage = () => {
           role: editing.role,
           permissions: editing.permissions,
           isActive: editing.isActive,
+          smtpEmail: editing.smtpEmail,
+          smtpName: editing.smtpName,
         }),
       });
       setMembers((prev) =>
@@ -155,7 +153,6 @@ export const TeamPage = () => {
     }
   };
 
-  // ── Delete member ─────────────────────────────────────────
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Remove ${name} from your team?`)) return;
     try {
@@ -168,6 +165,30 @@ export const TeamPage = () => {
       setError(err.message);
     }
   };
+
+  const handleResetPassword = async () => {
+    if (!resetPw.value || resetPw.value.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setResetPw((p) => ({ ...p, saving: true }));
+    setError("");
+    try {
+      await apiCall(`/team/${resetPw.id}/reset-password`, {
+        method: "PUT",
+        body: JSON.stringify({ newPassword: resetPw.value }),
+      });
+      setResetPw({ id: null, value: "", saving: false, show: false });
+      setSuccess("Password reset successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+      setResetPw((p) => ({ ...p, saving: false }));
+    }
+  };
+
+  const togglePermission = (perms, perm) =>
+    perms.includes(perm) ? perms.filter((p) => p !== perm) : [...perms, perm];
 
   const PermissionGrid = ({ permissions, onChange }) => (
     <div
@@ -195,7 +216,6 @@ export const TeamPage = () => {
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              transition: "all 0.15s",
             }}
           >
             <span
@@ -234,7 +254,7 @@ export const TeamPage = () => {
     </div>
   );
 
-  if (!isSuperAdmin)
+  if (!isSuperAdmin) {
     return (
       <div style={{ textAlign: "center", padding: "4rem 2rem" }}>
         <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔒</div>
@@ -246,6 +266,7 @@ export const TeamPage = () => {
         </p>
       </div>
     );
+  }
 
   return (
     <div>
@@ -290,18 +311,11 @@ export const TeamPage = () => {
             cursor: "pointer",
             fontSize: "0.875rem",
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#22d3ee")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#06b6d4")
-          }
         >
           + Add Member
         </button>
       </div>
 
-      {/* Alerts */}
       {error && (
         <div
           style={{
@@ -333,7 +347,7 @@ export const TeamPage = () => {
         </div>
       )}
 
-      {/* Current user card */}
+      {/* Current user */}
       <div
         style={{
           padding: "1rem 1.5rem",
@@ -401,6 +415,7 @@ export const TeamPage = () => {
           >
             ➕ Add New Member
           </h3>
+
           <div
             style={{
               display: "grid",
@@ -438,7 +453,7 @@ export const TeamPage = () => {
                   marginBottom: "5px",
                 }}
               >
-                Email *
+                Login Email *
               </label>
               <input
                 type="email"
@@ -497,7 +512,67 @@ export const TeamPage = () => {
                 </option>
               </select>
             </div>
+            <div>
+              <label
+                style={{
+                  color: "#9ca3af",
+                  fontSize: "0.78rem",
+                  display: "block",
+                  marginBottom: "5px",
+                }}
+              >
+                📧 Sending Email Address
+              </label>
+              <input
+                type="email"
+                value={newMember.smtpEmail}
+                onChange={(e) =>
+                  setNewMember((p) => ({ ...p, smtpEmail: e.target.value }))
+                }
+                placeholder="asifmadni@saleemiexpert.com"
+                style={inputStyle}
+              />
+              <p
+                style={{
+                  color: "#6b7280",
+                  fontSize: "0.7rem",
+                  marginTop: "3px",
+                }}
+              >
+                Emails sent by this member come from this address
+              </p>
+            </div>
+            <div>
+              <label
+                style={{
+                  color: "#9ca3af",
+                  fontSize: "0.78rem",
+                  display: "block",
+                  marginBottom: "5px",
+                }}
+              >
+                📛 Sender Display Name
+              </label>
+              <input
+                value={newMember.smtpName}
+                onChange={(e) =>
+                  setNewMember((p) => ({ ...p, smtpName: e.target.value }))
+                }
+                placeholder="Asif Madni - SaleemiExpert"
+                style={inputStyle}
+              />
+              <p
+                style={{
+                  color: "#6b7280",
+                  fontSize: "0.7rem",
+                  marginTop: "3px",
+                }}
+              >
+                Name shown to email recipients
+              </p>
+            </div>
           </div>
+
           <div>
             <label
               style={{
@@ -514,13 +589,12 @@ export const TeamPage = () => {
               onChange={(perm) =>
                 setNewMember((prev) => ({
                   ...prev,
-                  permissions: prev.permissions.includes(perm)
-                    ? prev.permissions.filter((p) => p !== perm)
-                    : [...prev.permissions, perm],
+                  permissions: togglePermission(prev.permissions, perm),
                 }))
               }
             />
           </div>
+
           <div style={{ display: "flex", gap: "10px", marginTop: "1.25rem" }}>
             <button
               onClick={handleAdd}
@@ -557,7 +631,7 @@ export const TeamPage = () => {
         </div>
       )}
 
-      {/* Team members list */}
+      {/* Team list */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "3rem", color: "#6b7280" }}>
           Loading team...
@@ -660,6 +734,7 @@ export const TeamPage = () => {
                     <p style={{ color: "#6b7280", fontSize: "0.78rem" }}>
                       {member.email} · {member.permissions?.length || 0}{" "}
                       permissions
+                      {member.smtpEmail ? ` · 📧 ${member.smtpEmail}` : ""}
                     </p>
                   </div>
                 </div>
@@ -827,6 +902,83 @@ export const TeamPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* SMTP fields */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "12px",
+                      gridTemplateColumns: "1fr 1fr",
+                      marginBottom: "1.25rem",
+                    }}
+                  >
+                    <div>
+                      <label
+                        style={{
+                          color: "#9ca3af",
+                          fontSize: "0.78rem",
+                          display: "block",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        📧 Sending Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={editing.smtpEmail || ""}
+                        onChange={(e) =>
+                          setEditing((p) => ({
+                            ...p,
+                            smtpEmail: e.target.value,
+                          }))
+                        }
+                        placeholder="asifmadni@saleemiexpert.com"
+                        style={inputStyle}
+                      />
+                      <p
+                        style={{
+                          color: "#6b7280",
+                          fontSize: "0.7rem",
+                          marginTop: "3px",
+                        }}
+                      >
+                        Emails sent by this member come from this address
+                      </p>
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          color: "#9ca3af",
+                          fontSize: "0.78rem",
+                          display: "block",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        📛 Sender Display Name
+                      </label>
+                      <input
+                        value={editing.smtpName || ""}
+                        onChange={(e) =>
+                          setEditing((p) => ({
+                            ...p,
+                            smtpName: e.target.value,
+                          }))
+                        }
+                        placeholder="Asif Madni - SaleemiExpert"
+                        style={inputStyle}
+                      />
+                      <p
+                        style={{
+                          color: "#6b7280",
+                          fontSize: "0.7rem",
+                          marginTop: "3px",
+                        }}
+                      >
+                        Name shown to email recipients
+                      </p>
+                    </div>
+                  </div>
+
                   <label
                     style={{
                       color: "#9ca3af",
@@ -842,17 +994,17 @@ export const TeamPage = () => {
                     onChange={(perm) =>
                       setEditing((prev) => ({
                         ...prev,
-                        permissions: prev.permissions.includes(perm)
-                          ? prev.permissions.filter((p) => p !== perm)
-                          : [...prev.permissions, perm],
+                        permissions: togglePermission(prev.permissions, perm),
                       }))
                     }
                   />
+
                   <div
                     style={{
                       display: "flex",
                       gap: "10px",
                       marginTop: "1.25rem",
+                      flexWrap: "wrap",
                     }}
                   >
                     <button
@@ -871,6 +1023,26 @@ export const TeamPage = () => {
                       {saving ? "Saving..." : "Save Changes"}
                     </button>
                     <button
+                      onClick={() =>
+                        setResetPw((p) => ({
+                          ...p,
+                          id: editing._id,
+                          show: !p.show,
+                        }))
+                      }
+                      style={{
+                        padding: "10px 24px",
+                        backgroundColor: "rgba(245,158,11,0.1)",
+                        color: "#f59e0b",
+                        border: "1px solid rgba(245,158,11,0.25)",
+                        borderRadius: "10px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      🔑 Reset Password
+                    </button>
+                    <button
                       onClick={() => setEditing(null)}
                       style={{
                         padding: "10px 24px",
@@ -884,6 +1056,96 @@ export const TeamPage = () => {
                       Cancel
                     </button>
                   </div>
+
+                  {/* Reset password panel */}
+                  {resetPw.show && resetPw.id === editing._id && (
+                    <div
+                      style={{
+                        marginTop: "1rem",
+                        padding: "1.25rem",
+                        borderRadius: "12px",
+                        backgroundColor: "rgba(245,158,11,0.07)",
+                        border: "1px solid rgba(245,158,11,0.2)",
+                      }}
+                    >
+                      <p
+                        style={{
+                          color: "#f59e0b",
+                          fontWeight: 700,
+                          fontSize: "0.875rem",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        🔑 Set New Password for {editing.name}
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <input
+                          type="text"
+                          value={resetPw.value}
+                          onChange={(e) =>
+                            setResetPw((p) => ({ ...p, value: e.target.value }))
+                          }
+                          placeholder="Enter new password (min 6 chars)"
+                          style={{
+                            flex: 1,
+                            minWidth: "200px",
+                            padding: "10px 14px",
+                            backgroundColor: "rgba(255,255,255,0.06)",
+                            border: "1px solid rgba(245,158,11,0.3)",
+                            borderRadius: "8px",
+                            color: "#fff",
+                            fontSize: "0.875rem",
+                            outline: "none",
+                          }}
+                        />
+                        <button
+                          onClick={handleResetPassword}
+                          disabled={resetPw.saving}
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#f59e0b",
+                            color: "#000",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {resetPw.saving ? "Saving..." : "Set Password"}
+                        </button>
+                        <button
+                          onClick={() =>
+                            setResetPw({
+                              id: null,
+                              value: "",
+                              saving: false,
+                              show: false,
+                            })
+                          }
+                          style={{
+                            padding: "10px 16px",
+                            backgroundColor: "transparent",
+                            color: "#9ca3af",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
