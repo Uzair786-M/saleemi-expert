@@ -111,12 +111,13 @@ export const MessagesPage = () => {
     }
   };
 
-  const handleAssign = async (msgId, memberId, memberName) => {
+  const handleAssign = async (msgId, memberId, memberName, memberSmtpEmail) => {
     setAssigning(true);
     try {
       const res = await api.put(`/contact/${msgId}/assign`, {
         assignedTo: memberId || null,
         assignedToName: memberName || null,
+        assignedToEmail: memberSmtpEmail || null,
       });
       const updated = res.data?.data;
       setMessages((prev) => prev.map((m) => (m._id === msgId ? updated : m)));
@@ -456,6 +457,7 @@ export const MessagesPage = () => {
                   </span>
                 </p>
               </div>
+              {/* Original message */}
               <div
                 style={{
                   padding: "1.25rem",
@@ -464,10 +466,113 @@ export const MessagesPage = () => {
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
+                <p
+                  style={{
+                    color: "#6b7280",
+                    fontSize: "0.75rem",
+                    marginBottom: "8px",
+                  }}
+                >
+                  📩 Original Message
+                </p>
                 <p style={{ color: "#d1d5db", lineHeight: 1.7 }}>
                   {selected.message}
                 </p>
               </div>
+
+              {/* Conversation thread */}
+              {selected.replies?.length > 0 && (
+                <div>
+                  <p
+                    style={{
+                      color: "#6b7280",
+                      fontSize: "0.75rem",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    💬 Conversation Thread
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                    }}
+                  >
+                    {selected.replies.map((r, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          padding: "12px 16px",
+                          borderRadius: "10px",
+                          backgroundColor:
+                            r.direction === "outgoing"
+                              ? "rgba(34,211,238,0.06)"
+                              : "rgba(255,255,255,0.04)",
+                          border: `1px solid ${r.direction === "outgoing" ? "rgba(34,211,238,0.15)" : "rgba(255,255,255,0.08)"}`,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color:
+                                r.direction === "outgoing"
+                                  ? "#22d3ee"
+                                  : "#9ca3af",
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {r.direction === "outgoing"
+                              ? `↗ ${r.sentBy} (${r.sentByEmail})`
+                              : `↙ ${selected.name}`}
+                          </span>
+                          <span
+                            style={{ color: "#4b5563", fontSize: "0.72rem" }}
+                          >
+                            {new Date(r.sentAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <p
+                          style={{
+                            color: "#d1d5db",
+                            fontSize: "0.875rem",
+                            lineHeight: 1.7,
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
+                          {r.text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sender info */}
+              {selected.assignedToEmail && (
+                <div
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    backgroundColor: "rgba(34,211,238,0.06)",
+                    border: "1px solid rgba(34,211,238,0.12)",
+                    fontSize: "0.78rem",
+                    color: "#9ca3af",
+                  }}
+                >
+                  📧 Client replies will go to:{" "}
+                  <strong style={{ color: "#22d3ee" }}>
+                    {selected.assignedToEmail}
+                  </strong>
+                </div>
+              )}
 
               {/* Actions */}
               <div
@@ -534,6 +639,7 @@ export const MessagesPage = () => {
                           selected._id,
                           e.target.value || null,
                           member ? member.name : null,
+                          member ? member.smtpEmail || member.email : null,
                         );
                       }}
                       disabled={assigning}
