@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../services/httpClient.js";
 
 // permission key matches ALL_PERMISSIONS in Admin.model.js
 const navItems = [
@@ -10,6 +11,7 @@ const navItems = [
     to: "/admin/messages",
     icon: "✉️",
     permission: "messages",
+    badge: true,
   },
   { label: "Mailbox", to: "/admin/mailbox", icon: "📬", permission: "mailbox" },
   { label: "Reviews", to: "/admin/reviews", icon: "⭐", permission: "reviews" },
@@ -54,11 +56,29 @@ const SIDEBAR_W = 260;
 export const AdminLayout = ({ children }) => {
   const { admin, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Only show nav items the current user has permission for
   const visibleNav = navItems.filter((item) => hasPermission(item.permission));
+
+  // Fetch unread message count every 30 seconds
+  useEffect(() => {
+    if (!hasPermission("messages")) return;
+    const fetchUnread = async () => {
+      try {
+        const res = await api.get("/contact?status=unread");
+        setUnreadCount(res.data?.unreadCount || res.data?.data?.length || 0);
+      } catch {
+        /* ignore */
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [location.pathname]); // re-fetch when route changes
 
   useEffect(() => {
     const onResize = () => {
@@ -125,7 +145,7 @@ export const AdminLayout = ({ children }) => {
           overflowY: "auto",
         }}
       >
-        {visibleNav.map(({ label, to, icon }) => (
+        {visibleNav.map(({ label, to, icon, badge }) => (
           <NavLink
             key={to}
             to={to}
@@ -147,7 +167,25 @@ export const AdminLayout = ({ children }) => {
             }}
           >
             <span style={{ fontSize: "1rem", flexShrink: 0 }}>{icon}</span>
-            <span>{label}</span>
+            <span style={{ flex: 1 }}>{label}</span>
+            {badge && unreadCount > 0 && (
+              <span
+                style={{
+                  backgroundColor: "#ef4444",
+                  color: "#ffffff",
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: "9999px",
+                  minWidth: "18px",
+                  textAlign: "center",
+                  lineHeight: "14px",
+                  flexShrink: 0,
+                }}
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

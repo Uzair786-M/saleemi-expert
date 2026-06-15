@@ -32,6 +32,18 @@ export const MessagesPage = () => {
     loadMessages();
   }, [filter]);
 
+  // Update page title with unread count
+  useEffect(() => {
+    if (unreadCount > 0) {
+      document.title = `(${unreadCount}) Messages — SaleemiExpert`;
+    } else {
+      document.title = "Messages — SaleemiExpert";
+    }
+    return () => {
+      document.title = "SaleemiExpert Admin";
+    };
+  }, [unreadCount]);
+
   const loadMessages = async () => {
     try {
       setLoading(true);
