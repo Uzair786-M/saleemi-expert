@@ -138,6 +138,7 @@ export const TeamPage = () => {
           isActive: editing.isActive,
           smtpEmail: editing.smtpEmail,
           smtpName: editing.smtpName,
+          smtpPassEnvKey: editing.smtpPassEnvKey,
         }),
       });
       setMembers((prev) =>
@@ -975,6 +976,43 @@ export const TeamPage = () => {
                         }}
                       >
                         Name shown to email recipients
+                      </p>
+                    </div>
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <label
+                        style={{
+                          color: "#9ca3af",
+                          fontSize: "0.78rem",
+                          display: "block",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        🔑 SMTP Password Env Key
+                      </label>
+                      <input
+                        value={editing.smtpPassEnvKey || ""}
+                        onChange={(e) =>
+                          setEditing((p) => ({
+                            ...p,
+                            smtpPassEnvKey: e.target.value,
+                          }))
+                        }
+                        placeholder="EMAIL_PASS_ASIF"
+                        style={inputStyle}
+                      />
+                      <p
+                        style={{
+                          color: "#6b7280",
+                          fontSize: "0.7rem",
+                          marginTop: "3px",
+                        }}
+                      >
+                        Add{" "}
+                        <code style={{ color: "#22d3ee" }}>
+                          {editing.smtpPassEnvKey || "EMAIL_PASS_ASIF"}
+                        </code>{" "}
+                        to Vercel env vars with this member's Zoho app password.
+                        Leave empty to use the global EMAIL_PASS.
                       </p>
                     </div>
                   </div>
