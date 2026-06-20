@@ -1,5 +1,34 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSiteData } from "../context/SiteDataContext";
+import { getFaqs } from "../services/api.js";
+
+const DEFAULT_FAQS = [
+  {
+    question: "Are these prices fixed?",
+    answer:
+      "These are starting prices. Final cost depends on the scope of work. I'll give you an exact quote after reviewing your project details.",
+  },
+  {
+    question: "How do I pay?",
+    answer:
+      "I accept PayPal, bank transfer, and other methods. 50% upfront, 50% on delivery for larger projects.",
+  },
+  {
+    question: "What if I need revisions?",
+    answer:
+      "Each package includes a set number of revisions. I want you 100% satisfied, so I'm always flexible.",
+  },
+  {
+    question: "Can I upgrade my package later?",
+    answer: "Absolutely. You can start with Basic and upgrade at any time.",
+  },
+  {
+    question: "How do we communicate?",
+    answer:
+      "Primarily via email and WhatsApp. I respond within a few hours during business hours.",
+  },
+];
 
 const inner = { width: "100%", padding: "0 clamp(1.5rem, 5vw, 6rem)" };
 const section = (bg) => ({
@@ -251,6 +280,15 @@ const PricingCard = ({ pkg }) => (
 
 export const PricingPage = () => {
   const { pricing: PRICING_PACKAGES } = useSiteData();
+  const [displayFaqs, setDisplayFaqs] = useState(DEFAULT_FAQS);
+
+  useEffect(() => {
+    getFaqs()
+      .then((data) => {
+        if (data?.length > 0) setDisplayFaqs(data);
+      })
+      .catch(() => {}); // keep DEFAULT_FAQS on error
+  }, []);
   return (
     <div style={{ paddingTop: "6rem" }}>
       {/* Header */}
@@ -400,30 +438,9 @@ export const PricingPage = () => {
               gap: "1rem",
             }}
           >
-            {[
-              {
-                q: "Are these prices fixed?",
-                a: "These are starting prices. Final cost depends on the scope of work. I'll give you an exact quote after reviewing your project details.",
-              },
-              {
-                q: "How do I pay?",
-                a: "I accept PayPal, bank transfer, and other methods depending on your location. 50% upfront, 50% on delivery for larger projects.",
-              },
-              {
-                q: "What if I need revisions?",
-                a: "Each package includes a set number of revisions. I want you 100% satisfied, so I'm always flexible.",
-              },
-              {
-                q: "Can I upgrade my package later?",
-                a: "Absolutely. You can start with Basic and upgrade to a higher package at any time.",
-              },
-              {
-                q: "How do we communicate?",
-                a: "Primarily via email and WhatsApp. I respond within a few hours during business hours and am available 24/7 for Premium clients.",
-              },
-            ].map(({ q, a }) => (
+            {displayFaqs.map(({ question, q, answer, a }, i) => (
               <details
-                key={q}
+                key={i}
                 style={{
                   padding: "1.5rem",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -443,7 +460,7 @@ export const PricingPage = () => {
                     alignItems: "center",
                   }}
                 >
-                  {q} <span style={{ color: "#22d3ee" }}>+</span>
+                  {question || q} <span style={{ color: "#22d3ee" }}>+</span>
                 </summary>
                 <p
                   style={{
@@ -453,7 +470,7 @@ export const PricingPage = () => {
                     fontSize: "clamp(0.875rem, 1.1vw, 1.05rem)",
                   }}
                 >
-                  {a}
+                  {answer || a}
                 </p>
               </details>
             ))}

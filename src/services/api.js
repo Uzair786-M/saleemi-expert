@@ -1,14 +1,15 @@
 import api from "./httpClient.js";
 
 // ─────────────────────────────────────────────────────────────
-// Backend always returns: { success: true, data: <record> }
-// Axios gives us:         response.data = { success, data }
-// So response.data.data  = the actual record we want
+// RESPONSE SHAPE FROM BACKEND:
+//   axios response:  { data: { success: true, data: <record> }, status, ... }
+//   r.data       =  { success: true, data: <record> }
+//   r.data.data  =  <record>  ← this is what we want
 // ─────────────────────────────────────────────────────────────
 
 // ── Auth ──────────────────────────────────────────────────────
-export const loginAdmin = (email, password) =>
-  api.post("/auth/login", { email, password }).then((r) => r.data);
+export const loginAdmin = (email, pw) =>
+  api.post("/auth/login", { email, password: pw }).then((r) => r.data);
 export const logoutAdmin = () => api.post("/auth/logout").then((r) => r.data);
 export const getAdminMe = () => api.get("/auth/me").then((r) => r.data);
 export const updateEmail = (email) =>
@@ -20,63 +21,78 @@ export const changePassword = (cur, nw) =>
 
 // ── Services ──────────────────────────────────────────────────
 export const fetchServices = () =>
-  api.get("/services").then((r) => r.data.data || []);
-export const createService = (body) =>
-  api.post("/services", body).then((r) => r.data.data);
-export const updateService = (id, body) =>
-  api.put(`/services/${id}`, body).then((r) => r.data.data);
+  api.get("/services").then((r) => r.data.data ?? []);
+export const createService = (b) =>
+  api.post("/services", b).then((r) => r.data.data);
+export const updateService = (id, b) =>
+  api.put(`/services/${id}`, b).then((r) => r.data.data);
 export const deleteService = (id) =>
   api.delete(`/services/${id}`).then((r) => r.data);
 
 // ── Portfolio ─────────────────────────────────────────────────
-export const fetchPortfolioItems = (cat) => {
-  const q = cat && cat !== "All" ? `?category=${encodeURIComponent(cat)}` : "";
-  return api.get(`/portfolio${q}`).then((r) => r.data.data || []);
-};
+export const fetchPortfolioItems = (cat) =>
+  api
+    .get(
+      `/portfolio${cat && cat !== "All" ? `?category=${encodeURIComponent(cat)}` : ""}`,
+    )
+    .then((r) => r.data.data ?? []);
 export const fetchPortfolioItem = (id) =>
   api.get(`/portfolio/${id}`).then((r) => r.data.data);
-export const createPortfolioItem = (body) =>
-  api.post("/portfolio", body).then((r) => r.data.data);
-export const updatePortfolioItem = (id, body) =>
-  api.put(`/portfolio/${id}`, body).then((r) => r.data.data);
+export const createPortfolioItem = (b) =>
+  api.post("/portfolio", b).then((r) => r.data.data);
+export const updatePortfolioItem = (id, b) =>
+  api.put(`/portfolio/${id}`, b).then((r) => r.data.data);
 export const deletePortfolioItem = (id) =>
   api.delete(`/portfolio/${id}`).then((r) => r.data);
 
 // ── Testimonials ──────────────────────────────────────────────
 export const fetchTestimonials = () =>
-  api.get("/testimonials").then((r) => r.data.data || []);
-export const createTestimonial = (body) =>
-  api.post("/testimonials", body).then((r) => r.data.data);
-export const updateTestimonial = (id, body) =>
-  api.put(`/testimonials/${id}`, body).then((r) => r.data.data);
+  api.get("/testimonials").then((r) => r.data.data ?? []);
+export const createTestimonial = (b) =>
+  api.post("/testimonials", b).then((r) => r.data.data);
+export const updateTestimonial = (id, b) =>
+  api.put(`/testimonials/${id}`, b).then((r) => r.data.data);
 export const deleteTestimonial = (id) =>
   api.delete(`/testimonials/${id}`).then((r) => r.data);
 
 // ── Contact ───────────────────────────────────────────────────
-export const submitContactForm = (body) =>
-  api.post("/contact", body).then((r) => r.data);
-export const fetchMessages = (status) =>
-  api.get(`/contact?status=${status || "all"}`).then((r) => r.data);
-export const updateMessageStatus = (id, st) =>
-  api.put(`/contact/${id}/status`, { status: st }).then((r) => r.data);
-export const replyToMessage = (id, text) =>
-  api.post(`/contact/${id}/reply`, { replyText: text }).then((r) => r.data);
+export const submitContactForm = (b) =>
+  api.post("/contact", b).then((r) => r.data);
+export const fetchMessages = (st) =>
+  api.get(`/contact?status=${st || "all"}`).then((r) => r.data);
+export const updateMessageStatus = (id, s) =>
+  api.put(`/contact/${id}/status`, { status: s }).then((r) => r.data);
+export const replyToMessage = (id, t) =>
+  api.post(`/contact/${id}/reply`, { replyText: t }).then((r) => r.data);
 export const deleteMessage = (id) =>
   api.delete(`/contact/${id}`).then((r) => r.data);
 
 // ── About ─────────────────────────────────────────────────────
-// Backend: GET /api/about → { success: true, data: aboutDoc }
-// We want: aboutDoc
+// GET /api/about → { success:true, data: aboutDoc }
+// r.data       → { success:true, data: aboutDoc }
+// r.data.data  → aboutDoc  (has socialLinks, skills, etc.)
 export const fetchAbout = () => api.get("/about").then((r) => r.data.data);
-export const updateAbout = (body) =>
-  api.put("/about", body).then((r) => r.data.data);
+export const updateAbout = (b) => api.put("/about", b).then((r) => r.data.data);
+export const getFaqs = () => api.get("/about/faqs").then((r) => r.data.data);
+export const saveFaqsApi = (faqs) =>
+  api.put("/about/faqs", { faqs }).then((r) => r.data);
 
 // ── Pricing ───────────────────────────────────────────────────
 export const fetchPricing = () =>
-  api.get("/pricing").then((r) => r.data.data || []);
-export const createPricing = (body) =>
-  api.post("/pricing", body).then((r) => r.data.data);
-export const updatePricing = (id, body) =>
-  api.put(`/pricing/${id}`, body).then((r) => r.data.data);
+  api.get("/pricing").then((r) => r.data.data ?? []);
+export const createPricing = (b) =>
+  api.post("/pricing", b).then((r) => r.data.data);
+export const updatePricing = (id, b) =>
+  api.put(`/pricing/${id}`, b).then((r) => r.data.data);
 export const deletePricing = (id) =>
   api.delete(`/pricing/${id}`).then((r) => r.data);
+
+// ── Emails (Mailbox) ──────────────────────────────────────────
+export const sendEmail = (body) =>
+  api.post("/emails/send", body).then((r) => r.data);
+export const fetchSentEmails = (params) =>
+  api.get("/emails", { params }).then((r) => r.data);
+export const deleteEmail = (id) =>
+  api.delete(`/emails/${id}`).then((r) => r.data);
+export const clearEmails = (status) =>
+  api.delete(`/emails?status=${status || "all"}`).then((r) => r.data);
