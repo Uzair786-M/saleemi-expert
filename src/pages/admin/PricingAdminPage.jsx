@@ -34,7 +34,7 @@ const empty = {
 };
 
 export const PricingAdminPage = () => {
-  const { pricing, pricingOps, owner, updateOwner, faqs } = useSiteData();
+  const { pricing, pricingOps, updateFaqs, faqs } = useSiteData();
   const [tab, setTab] = useState("packages"); // "packages" | "faqs"
 
   // ── Package state ─────────────────────────────────────────
@@ -167,7 +167,7 @@ export const PricingAdminPage = () => {
     setFaqSaving(true);
     setFaqError("");
     try {
-      await updateOwner({ ...owner, faqs: valid });
+      await updateFaqs(valid);
       setFaqSaved(true);
       setTimeout(() => setFaqSaved(false), 2500);
     } catch (err) {
