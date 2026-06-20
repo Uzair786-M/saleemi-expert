@@ -942,7 +942,6 @@ export const PricingAdminPage = () => {
               + Add Another FAQ
             </button>
           </div>
-          )
         </div>
       )}
     </div>
