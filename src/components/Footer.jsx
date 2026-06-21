@@ -12,8 +12,22 @@ const navLinks = [
 ];
 
 export const Footer = () => {
-  const { owner, socialLinks } = useSiteData();
+  const { owner, socialLinks, services } = useSiteData();
   const whatsappNumber = (owner.whatsapp || "").replace(/\D/g, "");
+
+  // Auto-sync footer service links with actual services from database
+  const displayServices =
+    services?.length > 0
+      ? services.map((s) => ({
+          label: s.title || s.name || s.label,
+          url: "/services",
+        }))
+      : [
+          { label: "Shopify Product Upload", url: "/services" },
+          { label: "WooCommerce CSV Import", url: "/services" },
+          { label: "Bulk Automation", url: "/services" },
+          { label: "Web Development", url: "/services" },
+        ];
 
   return (
     <footer
@@ -216,17 +230,10 @@ export const Footer = () => {
                 alignItems: "center",
               }}
             >
-              {[
-                "Shopify Product Upload",
-                "WooCommerce CSV Import",
-                "Bulk Automation",
-                "Web Development",
-                "Variant Mapping",
-                "Custom Pricing",
-              ].map((s) => (
-                <li key={s}>
+              {displayServices.map((s, i) => (
+                <li key={i}>
                   <Link
-                    to="/services"
+                    to={s.url || "/services"}
                     style={{
                       color: "#6b7280",
                       textDecoration: "none",
@@ -240,7 +247,7 @@ export const Footer = () => {
                       (e.currentTarget.style.color = "#6b7280")
                     }
                   >
-                    {s}
+                    {s.label}
                   </Link>
                 </li>
               ))}
